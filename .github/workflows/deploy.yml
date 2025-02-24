@@ -1,38 +1,54 @@
-name: Déploiement .NET sur Synology NAS
+name: CI/CD - Build et Déploiement .NET sur Synology NAS
 
 on:
   push:
     branches:
-      - master # Déclenchement sur push sur la branche main
+      - master # Déclenchement sur push sur la branche master
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Build de l'application
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupérer le code du dépôt
       - name: Checkout du code
         uses: actions/checkout@v3
 
-      # 2. Installer le SDK .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: "8.0" # Adaptez selon votre version .NET
 
-      # 3. Restaurer les dépendances
+      # Restauration avec le runtime linux-x64
       - name: Restauration des dépendances
-        run: dotnet restore
+        run: dotnet restore -r linux-x64
 
-      # 4. Compiler l'application
+      # Build en passant la propriété RuntimeIdentifier
       - name: Build de l'application
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore /p:RuntimeIdentifier=linux-x64
 
-      # 5. Publier l'application en mode self-contained pour linux-x64
+      # Publish en précisant le runtime et la propriété
       - name: Publication de l'application
-        run: dotnet publish -c Release -r linux-x64 --self-contained true -o published --no-build
+        run: dotnet publish -c Release -r linux-x64 --self-contained true -o published --no-build /p:RuntimeIdentifier=linux-x64
 
-      # 6. Copier les fichiers publiés sur le NAS via SCP
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: published-app
+          path: published/
+
+  deploy:
+    name: Déploiement sur Synology NAS
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: published-app
+          path: published/
+
       - name: Copier les fichiers sur le Synology NAS
         uses: appleboy/scp-action@master
         with:
@@ -43,7 +59,6 @@ jobs:
           source: "published/"
           target: ${{ secrets.TARGET_PATH }}
 
-      # 7. Exécuter les commandes de déploiement sur le NAS via SSH
       - name: Déployer l'application sur le NAS
         uses: appleboy/ssh-action@master
         with:
@@ -52,7 +67,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # Donner les permissions d'exécution au binaire
+            # Donner les permissions d'exécution au binaire (adaptez le nom du fichier si nécessaire)
             chmod +x ${{ secrets.TARGET_PATH }}Angular_Api
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
             pkill -f Angular_Api || true
