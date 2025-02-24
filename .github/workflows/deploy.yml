@@ -25,7 +25,7 @@ jobs:
 
       # Build en passant la propriété RuntimeIdentifier
       - name: Build de l'application
-        run: dotnet build --configuration Release --no-restore /p:RuntimeIdentifier=linux-x64
+        run: dotnet build --configuration Release
 
       # Publish en précisant le runtime et la propriété
       - name: Publication de l'application
