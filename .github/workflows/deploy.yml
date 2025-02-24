@@ -68,8 +68,8 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Donner les permissions d'exécution au binaire (adaptez le nom du fichier si nécessaire)
-            chmod +x ${{ secrets.TARGET_PATH }}Angular_Api
+            chmod +x ${{ secrets.TARGET_PATH }}
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
-            pkill -f Angular_Api || true
+            pkill -f  || true
             # Lancer l'application en arrière-plan et rediriger la sortie vers un log
-            nohup ${{ secrets.TARGET_PATH }}Angular_Api > ${{ secrets.TARGET_PATH }}app.log 2>&1 &
+            nohup ${{ secrets.TARGET_PATH }} > ${{ secrets.TARGET_PATH }}app.log 2>&1 &
