@@ -1,1 +1,1 @@
-﻿Console.WriteLine("C# Backend");
+﻿Console.WriteLine("Init project");
