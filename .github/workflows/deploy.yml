@@ -19,17 +19,17 @@ jobs:
         with:
           dotnet-version: "8.0" # Adaptez selon votre version .NET
 
-      # Restauration avec le runtime linux-x64
+      # Restauration des dépendances pour le runtime linux-x64
       - name: Restauration des dépendances
         run: dotnet restore -r linux-x64
 
-      # Build en passant la propriété RuntimeIdentifier
+      # Build de l'application
       - name: Build de l'application
         run: dotnet build --configuration Release
 
-      # Publish en précisant le runtime et la propriété
+      # Publication en self-contained avec le runtime linux-x64
       - name: Publication de l'application
-        run: dotnet publish -c Release -o published --no-build
+        run: dotnet publish -c Release -r linux-x64 -o published --self-contained true --no-build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -67,9 +67,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # Donner les permissions d'exécution au binaire (adaptez le nom du fichier si nécessaire)
-            chmod +x ${{ secrets.TARGET_PATH }}
+            # Donner les permissions d'exécution au binaire (adapté le nom de l'exécutable selon votre projet)
+            chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
-            pkill -f  || true
+            pkill -f ${{ secrets.APP_NAME }} || true
             # Lancer l'application en arrière-plan et rediriger la sortie vers un log
-            nohup ${{ secrets.TARGET_PATH }} > ${{ secrets.TARGET_PATH }}app.log 2>&1 &
+            nohup ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }} > ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}.log 2>&1 &
+            disown
+            exit 0
