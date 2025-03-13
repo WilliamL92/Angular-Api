@@ -9,6 +9,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configurer CORS pour autoriser les requêtes de l'application Angular
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularApp",
+        builder =>
+        {
+            builder.WithOrigins("http://angular.william-lavit.fr:40023") // Remplacez par l'URL de votre application Angular
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 // Enregistrer les services et les dépôts
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<UserService>();
@@ -23,6 +35,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Utiliser la politique CORS définie
+app.UseCors("AllowAngularApp");
 
 app.UseAuthorization();
 
