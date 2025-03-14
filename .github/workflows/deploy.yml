@@ -37,6 +37,20 @@ jobs:
           name: published-app
           path: published/
 
+  check_architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier l'architecture via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SYNOLOGY_HOST }}
+          username: ${{ secrets.SYNOLOGY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            echo "Architecture du NAS :"
+            uname -m
+
   deploy:
     name: Déploiement sur Synology NAS
     runs-on: ubuntu-latest
