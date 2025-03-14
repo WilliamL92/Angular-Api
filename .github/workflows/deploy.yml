@@ -68,10 +68,10 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Donner les permissions d'exécution au binaire (adapté le nom de l'exécutable selon votre projet)
-            chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
+            chmod +x ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }}
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
             pkill -f ${{ secrets.APP_NAME }} || true
             # Lancer l'application en arrière-plan et rediriger la sortie vers un log
-            nohup setsid ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }} > ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}.log 2>&1 &
+            nohup setsid ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }} > ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }}.log 2>&1 &
             disown
             exit 0
