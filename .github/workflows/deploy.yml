@@ -19,17 +19,17 @@ jobs:
         with:
           dotnet-version: "8.0" # Adaptez selon votre version .NET
 
-      # Restauration des dépendances pour le runtime linux-x64
+      # Restauration des dépendances pour le runtime linux-arm64
       - name: Restauration des dépendances
-        run: dotnet restore -r linux-x64
+        run: dotnet restore -r linux-arm64
 
       # Build de l'application
       - name: Build de l'application
         run: dotnet build --configuration Release
 
-      # Publication en self-contained avec le runtime linux-x64
+      # Publication en self-contained avec le runtime linux-arm64
       - name: Publication de l'application
-        run: dotnet publish -c Release -r linux-x64 -o published --self-contained true --no-build
+        run: dotnet publish -c Release -r linux-arm64 -o published --self-contained true --no-build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -81,7 +81,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # Donner les permissions d'exécution au binaire (adapté le nom de l'exécutable selon votre projet)
+            # Donner les permissions d'exécution au binaire (adaptez le nom de l'exécutable selon votre projet)
             chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
             pkill -f  || true
