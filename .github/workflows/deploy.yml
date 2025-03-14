@@ -72,4 +72,4 @@ jobs:
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
             pkill -f  || true
             # Lancer l'application en arrière-plan et rediriger la sortie vers un log
-            nohup ${{ secrets.TARGET_PATH }}/published/ > ${{ secrets.TARGET_PATH }}/published/.log 2>&1 &
+            nohup ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }} > ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }}.log 2>&1 &
