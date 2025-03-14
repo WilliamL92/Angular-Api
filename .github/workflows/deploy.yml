@@ -70,6 +70,6 @@ jobs:
             # Donner les permissions d'exécution au binaire (adapté le nom de l'exécutable selon votre projet)
             chmod +x ${{ secrets.TARGET_PATH }}
             # Arrêter l'ancienne instance de l'application (s'il y en a une)
-            pkill -f ${{ secrets.APP_NAME }} || true
+            pkill -f  || true
             # Lancer l'application en arrière-plan et rediriger la sortie vers un log
-            nohup ${{ secrets.TARGET_PATH }} > ${{ secrets.TARGET_PATH }}.log 2>&1 &
+            nohup ${{ secrets.TARGET_PATH }} > ${{ secrets.TARGET_PATH }}app.log 2>&1 &
