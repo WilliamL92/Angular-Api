@@ -62,11 +62,16 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            echo "Vérification de l'installation de Docker..."
+            if ! command -v docker > /dev/null; then
+              echo "Docker n'est pas installé. Installation de Docker..."
+              sudo apt-get update && sudo apt-get install -y docker.io
+            else
+              echo "Docker est déjà installé."
+            fi
+
             echo "Déploiement de la nouvelle image Docker..."
-            # Tirer la dernière image depuis le registre
             docker pull williaml92/angular_api:latest
-            # Arrêter et supprimer l'ancien container, s'il existe
             docker stop nom-du-container || true
             docker rm nom-du-container || true
-            # Lancer le nouveau container (ajustez les ports, volumes ou variables d'environnement si nécessaire)
             docker run -d --name nom-du-container -p 80:80 williaml92/angular_api:latest
