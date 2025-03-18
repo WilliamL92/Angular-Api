@@ -14,7 +14,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /Angular_API
 
 # Copier le résultat de la build
-COPY --from=build /Angular_API .
+COPY --from=build /angular_api .
 
 # Définir le point d’entrée (adaptez le nom de l’exécutable)
 ENTRYPOINT ["./API"]
