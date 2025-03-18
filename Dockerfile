@@ -11,10 +11,10 @@ RUN dotnet publish -c Release -r linux-x64 -o /app --self-contained true
 
 # Étape 2 : Création de l’image finale
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-WORKDIR /angular_api
+WORKDIR /app
 
 # Copier le résultat de la build
-COPY --from=build /angular_api .
+COPY --from=build /app .
 
 # Définir le point d’entrée (adaptez le nom de l’exécutable)
 ENTRYPOINT ["./API"]
