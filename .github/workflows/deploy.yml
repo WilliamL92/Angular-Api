@@ -28,25 +28,18 @@ jobs:
       - name: Publication de l'application
         run: dotnet publish -c Release -r linux-x64 -o published --self-contained true --no-build
 
-      - name: Upload artifact
+      - name: Build de l'image Docker
+        run: docker build -t angular_api:latest .
+
+      - name: Sauvegarde de l'image Docker
+        run: docker save angular_api:latest -o angular_api.tar
+        continue-on-error: true
+
+      - name: Upload de l'image Docker
         uses: actions/upload-artifact@v4
         with:
-          name: published-app
-          path: published/
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build et push de l'image Docker
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: williaml92/angular_api:latest
+          name: docker-image
+          path: angular_api.tar
 
   deploy:
     name: Déploiement sur Synology NAS via Docker
@@ -54,27 +47,30 @@ jobs:
     needs: build
 
     steps:
-      - name: Déployer l'image Docker sur le NAS
-        uses: appleboy/ssh-action@master
+      - name: Téléchargement de l'image Docker
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+
+      - name: Copie de l'image Docker sur le NAS
+        uses: appleboy/scp-action@v0.1.0
+        with:
+          host: ${{ secrets.SYNOLOGY_HOST }}
+          username: ${{ secrets.SYNOLOGY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "angular_api.tar"
+          target: "~/angular_api.tar"
+
+      - name: Déploiement de l'image Docker sur le NAS
+        uses: appleboy/ssh-action@v0.1.0
         with:
           host: ${{ secrets.SYNOLOGY_HOST }}
           username: ${{ secrets.SYNOLOGY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            echo "Vérification de l'installation de Docker..."
-            echo ${{ secrets.SSH_PORT }}
-            echo ${{ secrets.SYNOLOGY_USER }}
-            echo ${{ secrets.SSH_PRIVATE_KEY }}
-            if ! command -v docker > /dev/null; then
-              echo "Docker n'est pas installé. Installation de Docker..."
-              sudo apt-get update && sudo apt-get install -y docker.io
-            else
-              echo "Docker est déjà installé."
-            fi
-
-            echo "Déploiement de la nouvelle image Docker..."
-            docker pull williaml92/angular_api:latest
-            docker stop nom-du-container || true
-            docker rm nom-du-container || true
-            docker run -d --name nom-du-container -p 80:80 williaml92/angular_api:latest
+            docker load -i ~/angular_api.tar
+            docker stop angular_api || true
+            docker rm angular_api || true
+            docker run -d --name angular_api -p 80:80 angular_api:latest

@@ -1,20 +1,12 @@
-# Étape 1 : Construction de l'application
+# Étape 1 : Build de l'application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-
-# Copier tous les fichiers et restaurer les dépendances
 COPY . .
-RUN dotnet restore
+RUN dotnet restore -r linux-x64
+RUN dotnet publish -c Release -r linux-x64 -o /app --self-contained true --no-restore
 
-# Compiler et publier l’application en self-contained pour linux-x64
-RUN dotnet publish -c Release -r linux-x64 -o /app --self-contained true
-
-# Étape 2 : Création de l’image finale
+# Étape 2 : Image runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-
-# Copier le résultat de la build
 COPY --from=build /app .
-
-# Définir le point d’entrée (adaptez le nom de l’exécutable)
 ENTRYPOINT ["./API"]
