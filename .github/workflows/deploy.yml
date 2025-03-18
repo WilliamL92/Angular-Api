@@ -3,11 +3,11 @@ name: CI/CD - Build et Déploiement .NET sur Synology NAS
 on:
   push:
     branches:
-      - master # Déclenchement sur push sur la branche master
+      - master
 
 jobs:
   build:
-    name: Build de l'application
+    name: Build de l'application et création de l'image Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -17,17 +17,14 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "8.0" # Adaptez selon votre version .NET
+          dotnet-version: "8.0"
 
-      # Restauration des dépendances pour le runtime linux-x64
       - name: Restauration des dépendances
         run: dotnet restore -r linux-x64
 
-      # Build de l'application
       - name: Build de l'application
         run: dotnet build --configuration Release
 
-      # Publication en self-contained avec le runtime linux-x64
       - name: Publication de l'application
         run: dotnet publish -c Release -r linux-x64 -o published --self-contained true --no-build
 
@@ -37,29 +34,27 @@ jobs:
           name: published-app
           path: published/
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build et push de l'image Docker
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: williaml92/angular_api:latest
+
   deploy:
-    name: Déploiement sur Synology NAS
+    name: Déploiement sur Synology NAS via Docker
     runs-on: ubuntu-latest
     needs: build
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: published-app
-          path: published/
-
-      - name: Copier les fichiers sur le Synology NAS
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SYNOLOGY_HOST }}
-          username: ${{ secrets.SYNOLOGY_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          source: "published/"
-          target: ${{ secrets.TARGET_PATH }}
-
-      - name: Déployer l'application sur le NAS
+      - name: Déployer l'image Docker sur le NAS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SYNOLOGY_HOST }}
@@ -67,9 +62,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # Donner les permissions d'exécution au binaire (adapté le nom de l'exécutable selon votre projet)
-            chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
-            # Arrêter l'ancienne instance de l'application (s'il y en a une)
-            pkill -f  || true
-            # Lancer l'application en arrière-plan et rediriger la sortie vers un log
-            nohup ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }} > ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }}.log 2>&1 &
+            echo "Déploiement de la nouvelle image Docker..."
+            # Tirer la dernière image depuis le registre
+            docker pull williaml92/angular_api:latest
+            # Arrêter et supprimer l'ancien container, s'il existe
+            docker stop nom-du-container || true
+            docker rm nom-du-container || true
+            # Lancer le nouveau container (ajustez les ports, volumes ou variables d'environnement si nécessaire)
+            docker run -d --name nom-du-container -p 80:80 williaml92/angular_api:latest
