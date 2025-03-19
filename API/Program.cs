@@ -1,4 +1,3 @@
-using Angular_Api.Domain.Repositories;
 using Angular_Api.Application.Services;
 using Angular_Api.Infrastructure.Repositories;
 
@@ -9,15 +8,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configurer CORS pour autoriser toutes les origines, méthodes et headers
+// Configurer CORS pour autoriser les requêtes de l'application Angular
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowAngularApp",
+        builder =>
+        {
+            builder.WithOrigins("http://angular.william-lavit.fr:40023") // Remplacez par l'URL de votre application Angular
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
 });
 
 // Enregistrer les services et les dépôts
@@ -35,8 +35,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Activer CORS avant l'authentification/autorisation
-app.UseCors("AllowAll");
+// Utiliser la politique CORS définie
+app.UseCors("AllowAngularApp");
 
 app.UseAuthorization();
 
