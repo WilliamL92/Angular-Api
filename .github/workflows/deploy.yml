@@ -71,7 +71,7 @@ jobs:
             chmod +x "${TARGET_PATH}/published/${APP_NAME}"
 
             # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
-            PID=$(ss -tuln | grep ':5002' | awk '{print $6}' | cut -d',' -f2)
+            PID=$(netstat -anp | grep ':5002' | awk '{print $7}' | cut -d'/' -f1)
             if [ -n "$PID" ]; then
               kill "$PID" || kill -9 "$PID"
               echo "Processus $PID arrêté."
@@ -80,7 +80,7 @@ jobs:
             fi
 
             # Attendre que le port 5002 soit libéré
-            while ss -tuln | grep ':5002' >/dev/null; do
+            while netstat -an | grep ':5002' | grep -q 'LISTEN'; do
               echo "En attente de la libération du port 5002..."
               sleep 1
             done
