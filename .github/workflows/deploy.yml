@@ -5,9 +5,6 @@ on:
     branches:
       - master # Déclenchement sur push sur la branche master
 
-env:
-  SUDO_PASSWORD: ${{ secrets.SSH_ADM_PASSWORD }}
-
 jobs:
   build:
     name: Build de l'application
@@ -83,5 +80,5 @@ jobs:
             fi
 
             # Lancer la nouvelle instance de l'application
-            nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
+            nohup ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }} --urls "http://*:5002" > ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }}.log 2>&1 &
             echo "Nouvelle instance de l'application lancée sur le port 5002."
