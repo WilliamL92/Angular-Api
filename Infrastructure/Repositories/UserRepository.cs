@@ -14,7 +14,7 @@ namespace Angular_Api.Infrastructure.Repositories
                 new User { Id = 1, Name = "Alice", Email = "alice@example.com" },
                 new User { Id = 2, Name = "Bob", Email = "bob@example.com" },
                 new User { Id = 3, Name = "John", Email = "John@example.com" },
-                new User { Id = 4, Name = "Toto", Email = "Totoexample.com" }
+                new User { Id = 4, Name = "Toto", Email = "Toto@example.com" }
             };
         }
     }
