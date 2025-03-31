@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp",
         builder =>
         {
-            builder.WithOrigins("http://192.168.1.154:8080") // Remplacez par l'URL de votre application Angular
+            builder.WithOrigins("http://angular.william-lavit.fr:40023") // Remplacez par l'URL de votre application Angular
                    .AllowAnyHeader()
                    .AllowAnyMethod();
         });
