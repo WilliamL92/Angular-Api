@@ -71,7 +71,7 @@ jobs:
             chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
 
             # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
-            PID=$(sudo netstat -tulpen | grep ':5002' | awk '{print $9}' | cut -d'/' -f1)
+            PID=$(sudo -s ${{ secrets.SSH_ADM_PASSWORD }} netstat -tulpen | grep ':5002' | awk '{print $9}' | cut -d'/' -f1)
             if [ -n "$PID" ]; then
               kill "$PID" || kill -9 "$PID"
               echo "Processus $PID arrêté."
