@@ -59,33 +59,32 @@ jobs:
           source: "published/"
           target: ${{ secrets.TARGET_PATH }}
 
-- name: Déployer l'application sur le NAS
-  uses: appleboy/ssh-action@master
-  with:
-    host: ${{ secrets.SYNOLOGY_HOST }}
-    username: ${{ secrets.SYNOLOGY_USER }}
-    key: ${{ secrets.SSH_PRIVATE_KEY }}
-    port: ${{ secrets.SSH_PORT }}
-    script: |
-      # Donner les permissions d'exécution au binaire
-      chmod +x "${TARGET_PATH}/published/${APP_NAME}"
+      - name: Déployer l'application sur le NAS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SYNOLOGY_HOST }}
+          username: ${{ secrets.SYNOLOGY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            # Donner les permissions d'exécution au binaire
+            chmod +x "${TARGET_PATH}/published/${APP_NAME}"
 
-      # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
-      PID=$(ss -tuln | grep ':5002' | awk '{print $6}' | cut -d',' -f2)
-      if [ -n "$PID" ]; then
-        kill "$PID" || kill -9 "$PID"
-        echo "Processus $PID arrêté."
-      else
-        echo "Aucun processus trouvé sur le port 5002."
-      fi
+            # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
+            PID=$(ss -tuln | grep ':5002' | awk '{print $6}' | cut -d',' -f2)
+            if [ -n "$PID" ]; then
+              kill "$PID" || kill -9 "$PID"
+              echo "Processus $PID arrêté."
+            else
+              echo "Aucun processus trouvé sur le port 5002."
+            fi
 
-      # Attendre que le port 5002 soit libéré
-      while ss -tuln | grep ':5002' >/dev/null; do
-        echo "En attente de la libération du port 5002..."
-        sleep 1
-      done
+            # Attendre que le port 5002 soit libéré
+            while ss -tuln | grep ':5002' >/dev/null; do
+              echo "En attente de la libération du port 5002..."
+              sleep 1
+            done
 
-      # Lancer la nouvelle instance de l'application
-      nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
-      echo "Nouvelle instance de l'application lancée sur le port 5002."
-
+            # Lancer la nouvelle instance de l'application
+            nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
+            echo "Nouvelle instance de l'application lancée sur le port 5002."
