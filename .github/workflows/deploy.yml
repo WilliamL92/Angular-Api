@@ -58,30 +58,3 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: "published/"
           target: ${{ secrets.TARGET_PATH }}
-
-      - name: Déployer l'application sur le NAS
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SYNOLOGY_HOST }}
-          username: ${{ secrets.SYNOLOGY_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            #!/bin/sh
-
-            # Donner les permissions d'exécution au binaire
-            chmod +x "${TARGET_PATH}/published/${APP_NAME}"
-
-            # Identifier le PID du processus écoutant sur le port 5002
-            PID=$(ss -tuln | grep ':5002' | awk '{print $6}' | cut -d',' -f2)
-
-            # Si un processus est trouvé, le terminer
-            if [ -n "$PID" ]; then
-              kill "$PID"
-              echo "Processus $PID arrêté."
-            else
-              echo "Aucun processus trouvé sur le port 5002."
-            fi
-
-            # Lancer la nouvelle instance de l'application
-            nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
