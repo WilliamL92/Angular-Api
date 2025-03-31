@@ -5,6 +5,9 @@ on:
     branches:
       - master # Déclenchement sur push sur la branche master
 
+env:
+  SUDO_PASSWORD: ${{ secrets.SSH_ADM_PASSWORD }}
+
 jobs:
   build:
     name: Build de l'application
@@ -68,7 +71,17 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Donner les permissions d'exécution au binaire
-            chmod +x "${TARGET_PATH}/published/${APP_NAME}"
+            chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
+
+            # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
+            PID=$(sudo netstat -tulpen | grep ':5002' | awk '{print $9}' | cut -d'/' -f1)
+            if [ -n "$PID" ]; then
+              kill "$PID" || kill -9 "$PID"
+              echo "Processus $PID arrêté."
+            else
+              echo "Aucun processus trouvé sur le port 5002."
+            fi
 
             # Lancer la nouvelle instance de l'application
             nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
+            echo "Nouvelle instance de l'application lancée sur le port 5002."
