@@ -58,3 +58,17 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: "published/"
           target: ${{ secrets.TARGET_PATH }}
+
+      - name: Déployer l'application sur le NAS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SYNOLOGY_HOST }}
+          username: ${{ secrets.SYNOLOGY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            # Donner les permissions d'exécution au binaire
+            chmod +x "${TARGET_PATH}/published/${APP_NAME}"
+
+            # Lancer la nouvelle instance de l'application
+            nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
