@@ -71,19 +71,13 @@ jobs:
             chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
 
             # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
-            sudo PID=$(netstat -anp | grep ':5002' | awk '{print $7}' | cut -d'/' -f1)
+            PID=$(netstat -anp | grep ':5002' | awk '{print $7}' | cut -d'/' -f1)
             if [ -n "$PID" ]; then
               kill "$PID" || kill -9 "$PID"
               echo "Processus $PID arrêté."
             else
               echo "Aucun processus trouvé sur le port 5002."
             fi
-
-            # Attendre que le port 5002 soit libéré
-            while netstat -an | grep ':5002' | grep -q 'LISTEN'; do
-              echo "En attente de la libération du port 5002..."
-              sleep 1
-            done
 
             # Lancer la nouvelle instance de l'application
             nohup "${TARGET_PATH}/published/${APP_NAME}" --urls "http://*:5002" > "${TARGET_PATH}/${APP_NAME}.log" 2>&1 &
