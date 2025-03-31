@@ -69,7 +69,16 @@ jobs:
           script: |
             # Donner les permissions d'exécution au binaire (adapter le nom de l'exécutable selon votre projet)
             chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
-            # Arrêter l'ancienne instance de l'application (s'il y en a une) en utilisant fuser
-            fuser -k 5002/tcp || true
-            # Lancer l'application en arrière-plan et rediriger la sortie vers un log
+            # Identifier le PID du processus écoutant sur le port 5002
+            PID=$(ss -tuln | grep ':5002' | awk '{print $6}' | cut -d',' -f2)
+
+            # Si un processus est trouvé, le terminer
+            if [ -n "$PID" ]; then
+              kill $PID
+              echo "Processus $PID arrêté."
+            else
+              echo "Aucun processus trouvé sur le port 5002."
+            fi
+
+            # Lancer la nouvelle instance de l'application
             nohup ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }} --urls "http://*:5002" > ${{ secrets.TARGET_PATH }}/${{ secrets.APP_NAME }}.log 2>&1 &
