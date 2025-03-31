@@ -68,7 +68,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Donner les permissions d'exécution au binaire
-            chmod +x "${TARGET_PATH}/published/${APP_NAME}"
+            chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
 
             # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
             PID=$(netstat -anp | grep ':5002' | awk '{print $7}' | cut -d'/' -f1)
