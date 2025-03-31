@@ -5,6 +5,9 @@ on:
     branches:
       - master # Déclenchement sur push sur la branche master
 
+env:
+  SUDO_PASSWORD: ${{ secrets.SSH_ADM_PASSWORD }}
+
 jobs:
   build:
     name: Build de l'application
@@ -71,7 +74,7 @@ jobs:
             chmod +x ${{ secrets.TARGET_PATH }}/published/${{ secrets.APP_NAME }}
 
             # Identifier le PID du processus écoutant sur le port 5002 et le terminer si trouvé
-            PID=$(sudo -S "${{ secrets.SSH_ADM_PASSWORD }}" netstat -tulpen | grep ':5002' | awk '{print $9}' | cut -d'/' -f1)
+            PID=$(echo "$SUDO_PASSWORD" | sudo -S netstat -tulpen | grep ':5002' | awk '{print $9}' | cut -d'/' -f1)
             if [ -n "$PID" ]; then
               kill "$PID" || kill -9 "$PID"
               echo "Processus $PID arrêté."
